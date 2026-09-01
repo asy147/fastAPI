@@ -52,6 +52,10 @@ def get_task(task_id: int):
             return task
     return {"error": "Task not found"}
 
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task: Task):
     for i, t in enumerate(tasks):
