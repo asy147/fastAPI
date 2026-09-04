@@ -1,0 +1,8 @@
+groups:
+  - name: fastapi
+    rules:
+      - alert: AppDown
+        expr: up{job="fastapi"} == 0
+        for: 1m
+        annotations:
+          summary: "FastAPI app is down"
