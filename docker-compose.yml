@@ -1,5 +1,16 @@
 version: '3'
 services:
+  app:
+    build: .
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+      
   prometheus:
     image: prom/prometheus:latest
     ports:
