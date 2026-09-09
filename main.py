@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from prometheus_client import Gauge, REGISTRY, generate_latest, CONTENT_TYPE_LATEST
-
-
+from prometheus_client import Gauge, REGISTRY, generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
 from fastapi.responses import Response
 import time
 
@@ -69,7 +67,8 @@ def get_tasks():
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    return {"status": "looking good"}
+
 
 @app.get("/debug/gauges")
 def debug_gauges():
