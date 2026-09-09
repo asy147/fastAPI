@@ -4,6 +4,8 @@ services:
     build: .
     ports:
       - "80:80"
+    volumes:
+      - .:/app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 10s

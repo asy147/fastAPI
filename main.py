@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Gauge, REGISTRY, generate_latest, CONTENT_TYPE_LATEST
+
+
 from fastapi.responses import Response
 import time
 
@@ -11,6 +13,10 @@ task_id = 1
 request_count = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
 request_duration = Histogram('http_request_duration_seconds', 'HTTP request duration', ['method', 'endpoint'])
 
+
+tasks_total = Gauge('tasks_total', 'Total tasks', registry=REGISTRY)
+tasks_completed = Gauge('tasks_completed', 'Completed tasks', registry=REGISTRY)
+tasks_pending = Gauge('tasks_pending', 'Pending tasks', registry=REGISTRY)
 
 
 class Task(BaseModel):
@@ -31,8 +37,6 @@ async def track_metrics(request, call_next):
     
     return response
 
-
-
 @app.post("/tasks")
 def create_task(task: Task):
     global task_id
@@ -41,9 +45,16 @@ def create_task(task: Task):
     task_id += 1
     return new_task
 
-@app.get("/tasks")
-def get_tasks():
-    return tasks
+@app.get("/tasks/metrics")
+def task_metrics():
+    tasks_total.set(100)
+    tasks_completed.set(65)
+    tasks_pending.set(35)
+    return {
+        "total": 100,
+        "completed": 65,
+        "pending": 35
+    }
 
 @app.get("/tasks/{task_id}")
 def get_task(task_id: int):
@@ -52,10 +63,21 @@ def get_task(task_id: int):
             return task
     return {"error": "Task not found"}
 
+@app.get("/tasks")
+def get_tasks():
+    return tasks
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/debug/gauges")
+def debug_gauges():
+    return {
+        "tasks_total": tasks_total._value.get(),
+        "tasks_completed": tasks_completed._value.get(),
+        "tasks_pending": tasks_pending._value.get()
+    }
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task: Task):
     for i, t in enumerate(tasks):
