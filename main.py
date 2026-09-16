@@ -45,13 +45,11 @@ def create_task(task: Task):
 
 @app.get("/tasks/metrics")
 def task_metrics():
-    tasks_total.set(100)
-    tasks_completed.set(65)
-    tasks_pending.set(35)
+    total = len(tasks)
+    tasks_total.set(total)
+    
     return {
-        "total": 100,
-        "completed": 65,
-        "pending": 35
+        "total": total
     }
 
 @app.get("/tasks/{task_id}")
