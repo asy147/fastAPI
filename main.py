@@ -20,6 +20,7 @@ tasks_pending = Gauge('tasks_pending', 'Pending tasks', registry=REGISTRY)
 class Task(BaseModel):
     title: str
     description: str = "some description"
+    completed: bool = False
 
 tasks = []
 
@@ -46,10 +47,17 @@ def create_task(task: Task):
 @app.get("/tasks/metrics")
 def task_metrics():
     total = len(tasks)
+    completed = len([t for t in tasks if t.get("completed")])
+    pending = total - completed
+    
     tasks_total.set(total)
+    tasks_completed.set(completed)
+    tasks_pending.set(pending)
     
     return {
-        "total": total
+        "total": total,
+        "completed": completed,
+        "pending": pending
     }
 
 @app.get("/tasks/{task_id}")

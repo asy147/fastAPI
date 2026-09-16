@@ -56,3 +56,16 @@ def test_delete_task():
     # Verify it's gone
     get_response = client.get(f"/tasks/{task_id}")
     assert get_response.status_code == 404 or get_response.json().get("error")
+
+def test_task_metrics():
+    # Create one completed and one pending task
+    client.post("/tasks", json={"title": "Done", "completed": True})
+    client.post("/tasks", json={"title": "Pending", "completed": False})
+    
+    response = client.get("/tasks/metrics")
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert data["total"] == 2
+    assert data["completed"] == 1
+    assert data["pending"] == 1

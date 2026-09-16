@@ -3,11 +3,11 @@ services:
   app:
     build: .
     ports:
-      - "80:80"
+      - "8000:8000"
     volumes:
       - .:/code
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 3
