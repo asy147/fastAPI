@@ -38,7 +38,7 @@ async def track_metrics(request, call_next):
 @app.post("/tasks")
 def create_task(task: Task):
     global task_id
-    new_task = {"id": task_id, **task.dict()}
+    new_task = {"id": task_id, **task.model_dump()}
     tasks.append(new_task)
     task_id += 1
     return new_task
@@ -81,7 +81,7 @@ def debug_gauges():
 def update_task(task_id: int, task: Task):
     for i, t in enumerate(tasks):
         if t["id"] == task_id:
-            tasks[i] = {"id": task_id, **task.dict()}
+            tasks[i] = {"id": task_id, **task.model_dump()}
             return tasks[i]
     return {"error": "Task not found"}
 
