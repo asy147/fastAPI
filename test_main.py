@@ -1,6 +1,5 @@
 import pytest
 import main
-from main import app
 from moto import mock_aws
 from fastapi.testclient import TestClient
 
