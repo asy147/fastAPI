@@ -3,9 +3,45 @@ from pydantic import BaseModel
 from prometheus_client import Gauge, REGISTRY, generate_latest, CONTENT_TYPE_LATEST, Counter, Histogram
 from fastapi.responses import Response
 import time
+from uuid import uuid4
+import boto3
+import os
+from botocore.exceptions import ClientError
+from contextlib import asynccontextmanager
 
-app = FastAPI()
-task_id = 1
+dynamodb = None
+table = None
+
+def create_table():
+    global dynamodb, table
+    
+    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT_URL")  # None in real AWS
+    
+    dynamodb = boto3.resource("dynamodb", endpoint_url=endpoint_url, region_name="us-east-1")
+    
+    try:
+        table = dynamodb.create_table(
+            TableName="tasks",
+            KeySchema=[{"AttributeName": "task_id", "KeyType": "HASH"}],
+            AttributeDefinitions=[{"AttributeName": "task_id", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST"
+        )
+        table.wait_until_exists()
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ResourceInUseException":
+            table = dynamodb.Table("tasks")
+        else:
+            raise
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # runs once at startup
+    create_table()
+    yield
+    # runs once at shutdown (optional cleanup)
+
+app = FastAPI(lifespan=lifespan)
+
 
 # Define prometheus metrics
 request_count = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
@@ -22,8 +58,6 @@ class Task(BaseModel):
     description: str = "some description"
     completed: bool = False
 
-tasks = []
-
 # Add middleware to track metrics
 @app.middleware("http")
 async def track_metrics(request, call_next):
@@ -38,16 +72,16 @@ async def track_metrics(request, call_next):
 
 @app.post("/tasks")
 def create_task(task: Task):
-    global task_id
-    new_task = {"id": task_id, **task.model_dump()}
-    tasks.append(new_task)
-    task_id += 1
+    new_task = {"task_id": str(uuid4()), **task.model_dump()}
+    table.put_item(Item=new_task)
     return new_task
 
 @app.get("/tasks/metrics")
 def task_metrics():
-    total = len(tasks)
-    completed = len([t for t in tasks if t.get("completed")])
+    response = table.scan()
+    items = response["Items"]
+    total = len(items)
+    completed = len([t for t in items if t.get("completed")])
     pending = total - completed
     
     tasks_total.set(total)
@@ -61,20 +95,20 @@ def task_metrics():
     }
 
 @app.get("/tasks/{task_id}")
-def get_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-    return {"error": "Task not found"}
+def get_task(task_id: str):
+    response = table.get_item(Key={"task_id": task_id})
+    if "Item" not in response:
+        return {"error": "Task not found"}
+    return response["Item"]
 
 @app.get("/tasks")
 def get_tasks():
-    return tasks
+    response = table.scan()
+    return response["Items"]
 
 @app.get("/health")
 async def health_check():
     return {"status": "looking good"}
-
 
 @app.get("/debug/gauges")
 def debug_gauges():
@@ -83,21 +117,25 @@ def debug_gauges():
         "tasks_completed": tasks_completed._value.get(),
         "tasks_pending": tasks_pending._value.get()
     }
+
 @app.put("/tasks/{task_id}")
-def update_task(task_id: int, task: Task):
-    for i, t in enumerate(tasks):
-        if t["id"] == task_id:
-            tasks[i] = {"id": task_id, **task.model_dump()}
-            return tasks[i]
-    return {"error": "Task not found"}
+def update_task(task_id: str, task: Task):
+    response = table.get_item(Key={"task_id": task_id})
+    if "Item" not in response:
+        return {"error": "Task not found"}
+    else:
+        updated_task = {"task_id": task_id, **task.model_dump()}
+        table.put_item(Item=updated_task)
+        return updated_task
 
 @app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for i, t in enumerate(tasks):
-        if t["id"] == task_id:
-            tasks.pop(i)
-            return {"message": "Task deleted"}
-    return {"error": "Task not found"}
+def delete_task(task_id: str):
+    response = table.get_item(Key={"task_id": task_id})
+    if "Item" not in response:
+        return {"error": "Task not found"}
+    else:
+        table.delete_item(Key={"task_id": task_id})
+        return {"message": "Task deleted"}
 
 
 # Expose metrics endpoint

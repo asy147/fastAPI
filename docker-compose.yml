@@ -11,7 +11,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 5s
-      
+    environment:
+      - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+    depends_on:
+      - dynamodb-local
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -31,6 +34,12 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8001:8000"
+    command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
 
 volumes:
   grafana_data:
