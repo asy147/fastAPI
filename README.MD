@@ -45,7 +45,7 @@ curl http://localhost:8000/tasks
 
 ### Read One Task
 ```bash
-curl http://localhost:8000/tasks/1
+curl http://localhost:8000/tasks/<task_id>
 ```
 
 ### Update Task
@@ -61,5 +61,9 @@ curl -X DELETE http://localhost:8000/tasks/1
 ```
 
 ## Development Notes
-- Tasks are stored in-memory (no database). Data resets on server restart.
+- Tasks are stored in DynamoDB. DynamoDB Local used for local dev via docker compose.
 - Prometheus metrics exposed at `/metrics` endpoint.
+
+## Decisions
+
+- **DynamoDB over Postgres/Redis:** simple key-value access pattern, no joins needed, native to AWS; on-demand capacity to avoid provisioned costs on a demo workload.
