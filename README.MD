@@ -66,4 +66,18 @@ curl -X DELETE http://localhost:8000/tasks/1
 
 ## Decisions
 
-- **DynamoDB over Postgres/Redis:** simple key-value access pattern, no joins needed, native to AWS; on-demand capacity to avoid provisioned costs on a demo workload.
+- **DynamoDB over Postgres/Redis:** Simple key-value access pattern, no joins needed, native to AWS; on-demand capacity to avoid provisioned costs on a demo workload.
+
+- **Default security group of the VPC doesn't restrict all traffic** The default security group in every VPC allows all inbound/outbound traffic between members of that group. AWS recommends leaving it empty and using explicit security groups instead - however for this project it won't be necessary since it is not at a production scale.
+
+- **VPC flow logging not enabled** CloudWatch ingestion would incur additional costs, also outside of the scope of this capstone project.
+
+- **2 AZs:** This is the minimum amount of AZs for an ALB to work. If only 1 AZ the ALB cannot work
+
+- **Public vs private subnet distinction:** Public subnets will have an attached IGW with a route table association of 0.0.0.0/0, private subnets will not
+
+- **NAT off by default:** NAT will be off for this project because it is not needed and will incur more costs. 
+
+- **/16 carved with cidrsubnet:** This will be more than enough addresses for the scope of this project.
+
+- **Bootstrap bucket unmanaged on purpose:** In order to avoid an accidental deletion of the bucket, Terraform will not manage the s3 bucket resource in which the tfstatefile resides.

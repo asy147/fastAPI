@@ -1,15 +1,9 @@
 resource "aws_vpc" "main" {
   cidr_block = var.vpc_cidr
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_subnet" "public" {
@@ -18,9 +12,6 @@ resource "aws_subnet" "public" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index)
   availability_zone = var.azs[count.index]
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_subnet" "private" {
@@ -28,9 +19,6 @@ resource "aws_subnet" "private" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 2)
   availability_zone = var.azs[count.index]
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_route_table" "public" {
@@ -39,16 +27,10 @@ resource "aws_route_table" "public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
-  tags = {
-    Environment = var.environment
-  }
 }
 
 resource "aws_route_table_association" "public_route_table" {
