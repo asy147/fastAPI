@@ -12,9 +12,12 @@ services:
       retries: 3
       start_period: 5s
     environment:
-      - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+    - DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+    - AWS_ACCESS_KEY_ID=dummy
+    - AWS_SECRET_ACCESS_KEY=dummy
     depends_on:
-      - dynamodb-local
+      dynamodb-local:
+          condition: service_healthy
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -40,6 +43,13 @@ services:
     ports:
       - "8001:8000"
     command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
+    healthcheck:
+      test: ["CMD-SHELL", "echo > /dev/tcp/localhost/8000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 
 volumes:
   grafana_data:
