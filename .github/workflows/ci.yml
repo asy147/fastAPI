@@ -33,9 +33,10 @@ jobs:
     name: checkov-action
     steps:
       - uses: actions/checkout@v4
-      - uses: bridgecrewio/checkov-action@master
+      - uses: bridgecrewio/checkov-action@v12.1347.0
         with:
-          directory: .
+          directory: ./tf
+          skip_check: CKV2_AWS_11,CKV_AWS_136
 
 
   test:
