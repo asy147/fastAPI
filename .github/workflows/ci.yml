@@ -10,6 +10,34 @@ permissions:
   contents: read
       
 jobs:
+
+  tf-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.16.6"
+      - run: terraform fmt -check -recursive 
+      - run: terraform validate
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v6
+      - run: tflint -f compact
+
+  checkov-job:
+    runs-on: ubuntu-latest
+    name: checkov-action
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+
+
   test:
     runs-on: ubuntu-latest
     steps:

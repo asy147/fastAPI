@@ -15,9 +15,3 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
-
-variable "enable_nat" {
-  description = "Variable for NAT GW"
-  type        = bool
-  default     = false
-}
