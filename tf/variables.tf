@@ -15,8 +15,3 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
-
-variable "dynamodb_table_arn" {
-  description = "DynamoDB table ARN"
-  type        = string
-}

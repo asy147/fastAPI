@@ -81,8 +81,20 @@ resource "aws_iam_role_policy" "task_policy" {
           "dynamodb:DescribeTable"
         ]
         Effect   = "Allow"
-        Resource = var.dynamodb_table_arn
+        Resource = aws_dynamodb_table.tasks-dynamodb-table.arn
       },
     ]
   })
+}
+
+
+resource "aws_dynamodb_table" "tasks-dynamodb-table" {
+  name         = "tasks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "task_id"
+
+  attribute {
+    name = "task_id"
+    type = "S"
+  }
 }
