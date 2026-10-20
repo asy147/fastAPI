@@ -29,8 +29,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: terraform-linters/setup-tflint@v6
-      - run: tflint --recursive init
-      - run: tflint -f compact --recursive
+      - run: tflint --chdir=tf --init
+      - run: tflint --chdir=tf --recursive
 
   checkov-job:
     runs-on: ubuntu-latest
