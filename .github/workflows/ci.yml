@@ -25,16 +25,12 @@ jobs:
       - run: terraform validate
 
   tflint:
-    defaults:
-      run:
-        working-directory: tf
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: terraform-linters/setup-tflint@v6
-      - run: tflint init
+      - run: tflint --recursive init
       - run: tflint -f compact --recursive
-        
 
   checkov-job:
     runs-on: ubuntu-latest
