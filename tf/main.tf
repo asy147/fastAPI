@@ -4,8 +4,8 @@ module "network" {
   azs      = var.azs
 }
 
-#Using default AES-256 encryption. KMS skipped — capstone project, nightly destroy, no compliance requirement.
 resource "aws_ecr_repository" "app" {
+  #checkov:skip=CKV_AWS_136: Using default AES-256 encryption. KMS skipped — capstone project, nightly destroy, no compliance requirement
   name                 = "task_mgr"
   image_tag_mutability = "IMMUTABLE"
 
@@ -14,7 +14,6 @@ resource "aws_ecr_repository" "app" {
   }
   force_delete = true
 }
-
 
 resource "aws_iam_role" "exec_role" {
   name = "exec_role"
@@ -39,8 +38,6 @@ resource "aws_iam_role_policy_attachment" "exec-attach" {
   role       = aws_iam_role.exec_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
-
-
 
 resource "aws_iam_role" "task_role" {
   name = "task_role"
@@ -89,6 +86,7 @@ resource "aws_iam_role_policy" "task_policy" {
 
 
 resource "aws_dynamodb_table" "tasks-dynamodb-table" {
+  #checkov:skip=CKV_AWS_119: Using default AES-256 encryption. KMS skipped — capstone project, nightly destroy, no compliance requirement
   name         = "tasks"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "task_id"

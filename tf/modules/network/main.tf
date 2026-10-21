@@ -4,19 +4,17 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6.0"
-
-
     }
   }
 }
 
-
-# VPC flow logs disabled to cut costs
 resource "aws_vpc" "main" {
+  #checkov:skip=CKV2_AWS_11: VPC flow logs disabled to cut costs
   cidr_block = var.vpc_cidr
 }
 
 resource "aws_default_security_group" "default" {
+  #checkov:skip=CKV2_AWS_12: Default SG intentionally configured with no rules to deny all traffic
   vpc_id = aws_vpc.main.id
 }
 
