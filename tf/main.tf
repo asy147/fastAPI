@@ -87,6 +87,7 @@ resource "aws_iam_role_policy" "task_policy" {
 
 resource "aws_dynamodb_table" "tasks-dynamodb-table" {
   #checkov:skip=CKV_AWS_119: Using default AES-256 encryption. KMS skipped — capstone project, nightly destroy, no compliance requirement
+  #checkov:skip=CKV_AWS_28: Using default AES-256 encryption. KMS skipped — capstone project, nightly destroy, no compliance requirement
   name         = "tasks"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "task_id"
