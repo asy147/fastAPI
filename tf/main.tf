@@ -97,3 +97,52 @@ resource "aws_dynamodb_table" "tasks-dynamodb-table" {
     type = "S"
   }
 }
+
+resource "aws_cloudwatch_log_group" "app" {
+  name              = "/ecs/task-manager"
+  retention_in_days = 7
+}
+
+#AWS account ID for the image URI
+data "aws_caller_identity" "current" {}
+
+resource "aws_ecs_cluster" "main" {
+  name = "task-manager-cluster"
+}
+
+resource "aws_ecs_task_definition" "app" {
+  family                   = "task-manager"
+  requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.exec_role.arn
+  task_role_arn            = aws_iam_role.task_role.arn
+
+  container_definitions = jsonencode([{
+    name  = "task-manager"
+    image = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-east-1.amazonaws.com/task_mgr:${var.image_tag}"
+
+    portMappings = [{
+      containerPort = 8000
+      protocol      = "tcp"
+    }]
+
+    healthCheck = {
+      command     = ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval    = 30
+      timeout     = 5
+      retries     = 3
+      startPeriod = 60
+    }
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        "awslogs-group"         = aws_cloudwatch_log_group.app.name
+        "awslogs-region"        = "us-east-1"
+        "awslogs-stream-prefix" = "ecs"
+      }
+    }
+  }])
+}

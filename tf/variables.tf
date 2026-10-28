@@ -15,3 +15,8 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
+
+variable "image_tag" {
+  description = "ECR image tag (commit SHA) to deploy"
+  type        = string
+}
