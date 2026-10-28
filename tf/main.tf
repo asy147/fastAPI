@@ -99,6 +99,7 @@ resource "aws_dynamodb_table" "tasks-dynamodb-table" {
 }
 
 resource "aws_cloudwatch_log_group" "app" {
+  #checkov:skip=CKV_AWS_158: KMS encryption skipped — capstone project, nightly destroy, no compliance requirement
   name              = "/ecs/task-manager"
   retention_in_days = 7
 }
