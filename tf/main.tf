@@ -107,6 +107,7 @@ resource "aws_cloudwatch_log_group" "app" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_ecs_cluster" "main" {
+  #checkov:skip=CKV_AWS_65: Container insights skipped — capstone project, nightly destroy, adds per-event cost
   name = "task-manager-cluster"
 }
 
