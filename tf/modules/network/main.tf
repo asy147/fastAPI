@@ -14,7 +14,6 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_default_security_group" "default" {
-  #checkov:skip=CKV2_AWS_12: Default SG intentionally configured with no rules to deny all traffic
   vpc_id = aws_vpc.main.id
 }
 
