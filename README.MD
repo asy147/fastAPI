@@ -81,3 +81,9 @@ curl -X DELETE http://localhost:8000/tasks/1
 - **/16 carved with cidrsubnet:** This will be more than enough addresses for the scope of this project.
 
 - **Bootstrap bucket unmanaged on purpose:** In order to avoid an accidental deletion of the bucket, Terraform will not manage the s3 bucket resource in which the tfstatefile resides.
+
+- **Fargate tasks in public subnet with public IP:** No NAT gateway and no VPC endpoints. Tasks reach ECR and DynamoDB over the internet via their assigned public IP. Keeps infrastructure cost at $0 for a nightly-destroyed capstone.
+
+- **Image tag = commit SHA, no default:** ECR repo is IMMUTABLE so each SHA maps to exactly one image. No default on the `image_tag` variable forces an explicit value at every apply, preventing silent stale deploys.
+
+- **ALB out for Phase A:** Fargate tasks are accessed directly via security group. ALB costs ~$0.0225/hr (~$16/month if left running); complexity outweighs value before the service is proven. Will revisit as a standalone exercise.
