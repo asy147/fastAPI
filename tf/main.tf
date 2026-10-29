@@ -100,6 +100,7 @@ resource "aws_dynamodb_table" "tasks-dynamodb-table" {
 
 resource "aws_cloudwatch_log_group" "app" {
   #checkov:skip=CKV_AWS_158: KMS encryption skipped — capstone project, nightly destroy, no compliance requirement
+  #checkov:skip=CKV_AWS_338: retention <1yr, dont want to keep it for longer, cut costs
   name              = "/ecs/task-manager"
   retention_in_days = 7
 }
@@ -113,6 +114,8 @@ resource "aws_ecs_cluster" "main" {
 }
 
 resource "aws_ecs_task_definition" "app" {
+  #checkov:skip=CKV_AWS_336: Public IP required — no ALB, no NAT, no VPC endpoints.
+
   family                   = "task-manager"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -147,4 +150,44 @@ resource "aws_ecs_task_definition" "app" {
       }
     }
   }])
+}
+
+resource "aws_security_group" "allow_app" {
+  name        = "allow_app"
+  description = "Allows app to communicate with external services"
+  vpc_id      = module.network.vpc_id
+
+  #checkov:skip=CKV_AWS_382:Allow egress to AWS services
+
+
+  egress {
+    description = "Allow outbound communication with external services"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    description = "allow inbound communication with my IP"
+    from_port   = 8000
+    to_port     = 8000
+    protocol    = "tcp"
+    cidr_blocks = ["189.68.7.61/32"]
+  }
+}
+
+resource "aws_ecs_service" "app" {
+  #checkov:skip=CKV_AWS_333: we want to assign a public IP because we dont have an ALB or NAT GW
+
+  name            = "app"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.app.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets          = module.network.public_subnet_ids
+    assign_public_ip = true
+    security_groups  = [aws_security_group.allow_app.id]
+  }
 }
