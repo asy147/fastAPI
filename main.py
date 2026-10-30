@@ -9,16 +9,23 @@ import os
 from botocore.exceptions import ClientError
 from contextlib import asynccontextmanager
 
-dynamodb = None
-table = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # runs once at startup
+    global dynamodb, table
+    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT_URL")
+    dynamodb = boto3.resource("dynamodb", endpoint_url=endpoint_url, region_name="us-east-1")
+    try:
+        response = dynamodb.Table('tasks').load()
+    except dynamodb.exceptions.ResourceNotFoundException:
+        create_table()
+    table = dynamodb.Table('tasks')
+    yield
+    # runs once at shutdown (optional cleanup)
+
 
 def create_table():
-    global dynamodb, table
-    
-    endpoint_url = os.environ.get("DYNAMODB_ENDPOINT_URL")  # None in real AWS
-    
-    dynamodb = boto3.resource("dynamodb", endpoint_url=endpoint_url, region_name="us-east-1")
-    
     try:
         table = dynamodb.create_table(
             TableName="tasks",
@@ -33,12 +40,7 @@ def create_table():
         else:
             raise
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # runs once at startup
-    create_table()
-    yield
-    # runs once at shutdown (optional cleanup)
+
 
 app = FastAPI(lifespan=lifespan)
 
