@@ -73,4 +73,28 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t task-manager-api .
-        
+
+      - name: Create network and start DynamoDB Local
+        run: |
+          docker network create smoke-test-network
+          docker run -d --name dynamodb-local \
+            --network smoke-test-network \
+            --health-cmd "echo > /dev/tcp/localhost/8000" \
+            --health-interval 2s \
+            --health-start-period 5s \
+            --health-retries 3 \
+            amazon/dynamodb-local:3.3.0 \
+            -jar DynamoDBLocal.jar -sharedDb -inMemory
+
+      - name: Wait for DynamoDB Local to be healthy
+        run: |
+          for i in $(seq 1 15); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' dynamodb-local)
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "DynamoDB Local never became healthy"
+          docker logs dynamodb-local
+          exit 1

@@ -39,7 +39,7 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning
 
   dynamodb-local:
-    image: amazon/dynamodb-local:latest
+    image: amazon/dynamodb-local:3.3.0
     ports:
       - "8001:8000"
     command: "-jar DynamoDBLocal.jar -sharedDb -inMemory"
