@@ -98,3 +98,20 @@ jobs:
           echo "DynamoDB Local never became healthy"
           docker logs dynamodb-local
           exit 1
+      
+      - name: Initialize app
+        run: |
+          docker run --name app -d -p 8000:8000 -e DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000 -e AWS_ACCESS_KEY_ID=dummy -e AWS_SECRET_ACCESS_KEY=dummy -e AWS_DEFAULT_REGION=us-east-1 --network smoke-test-network task-manager-api
+        
+      - name: Wait for app /health
+        run: |
+          for i in $(seq 1 15); do
+            if curl -f -s --max-time 2 http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "App never returned 200 on /health"
+          docker logs app
+          docker logs dynamodb-local
+          exit 1
