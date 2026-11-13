@@ -157,8 +157,6 @@ resource "aws_security_group" "allow_app" {
   description = "Allows app to communicate with external services"
   vpc_id      = module.network.vpc_id
 
-  #checkov:skip=CKV_AWS_382:Allow egress to AWS services
-
 
   egress {
     description = "Allow outbound communication with external services"
