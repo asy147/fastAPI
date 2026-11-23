@@ -8,7 +8,7 @@ COPY ./requirements.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 RUN apt-get update && apt-get install -y  --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-COPY . /code
+#COPY . /code
 
 RUN useradd -ms /bin/bash  appuser
 USER appuser
