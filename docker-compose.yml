@@ -19,7 +19,7 @@ services:
       dynamodb-local:
           condition: service_healthy
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.14.0
     ports:
       - "9090:9090"
     volumes:
@@ -29,7 +29,7 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.0
     ports:
       - "3000:3000"
     environment:
