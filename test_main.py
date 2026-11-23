@@ -23,7 +23,8 @@ def client():
         
 def test_lifespan_creates_missing_table(monkeypatch):
     with mock_aws():
-        monkeypatch.delenv("DYNAMODB_ENDPOINT_URL", raising=False)
+        monkeypatch.delenv("DYNAMODB_ENDPOINT_URL", raising=False) 
+        monkeypatch.setenv("AWS_DEFAULT_REGION", "us-east-1")
         with TestClient(main.app) as c:
             response = c.get("/tasks")
             assert response.status_code == 200
