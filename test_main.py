@@ -4,7 +4,7 @@ from moto import mock_aws
 from fastapi.testclient import TestClient
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def client():
     with mock_aws():
         import boto3
@@ -20,6 +20,15 @@ def client():
         main.table = table
 
         yield TestClient(main.app)
+        
+def test_lifespan_creates_missing_table(monkeypatch):
+    with mock_aws():
+        monkeypatch.delenv("DYNAMODB_ENDPOINT_URL", raising=False)
+        with TestClient(main.app) as c:
+            response = c.get("/tasks")
+            assert response.status_code == 200
+
+
 
 
 def test_create_task(client):
