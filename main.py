@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     # runs once at startup
     global dynamodb, table
     endpoint_url = os.environ.get("DYNAMODB_ENDPOINT_URL")
-    dynamodb = boto3.resource("dynamodb", endpoint_url=endpoint_url)
+    dynamodb = boto3.resource("dynamodb", endpoint_url=endpoint_url, region_name="us-east-1")
     try:
         dynamodb.Table('tasks').load()
     except dynamodb.meta.client.exceptions.ResourceNotFoundException:
